@@ -7,9 +7,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Maps to the real `organizations` table in schoolifetrue_db.
- */
 @Entity
 @Table(name = "organizations")
 @Data
@@ -23,23 +20,22 @@ public class Organization {
     @Column(nullable = false)
     private String name;
 
-    @Column
     private String acronym;
 
-    @Column
     private String type;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column
     private String adviser;
 
     @Column(name = "year_founded")
     private Integer yearFounded;
 
+    @Column(name = "logo")
+    private String logo;   // ← organization logo filename
+
     @Enumerated(EnumType.STRING)
-    @Column
     private OrgStatus status = OrgStatus.ACTIVE;
 
     @Column(name = "created_at")

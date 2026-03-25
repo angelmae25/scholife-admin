@@ -9,62 +9,115 @@
     <div class="topbar">
         <span class="topbar-title">Organizations</span>
     </div>
+
     <div class="page-content">
 
         <div class="page-header">
             <div class="page-header-left">
                 <h1>Organizations</h1>
-                <p>Create and manage student organizations and their officer appointments.</p>
+                <p>Create and manage student organizations and their officers.</p>
             </div>
+
             <a th:href="@{/organizations/new}" class="btn btn-primary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
                 New Organization
             </a>
         </div>
 
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
-        <!-- Org cards grid -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"
+        <!-- ORGANIZATION GRID -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px"
              th:if="${!#lists.isEmpty(orgs)}">
-            <div class="card" th:each="org : ${orgs}" style="transition:box-shadow .18s">
+
+            <div class="card" th:each="org : ${orgs}">
                 <div class="card-body">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">
-                        <div>
-                            <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--primary-dark)"
-                                 th:text="${org.name}"></div>
-                            <div style="font-size:.76rem;font-weight:700;color:var(--accent);margin-top:1px"
-                                 th:text="${org.acronym}" th:if="${org.acronym}"></div>
+
+                    <div style="display:flex;gap:12px;margin-bottom:12px">
+
+                        <!-- LOGO -->
+                        <img th:if="${org.logo}"
+                             th:src="@{'/uploads/org-logos/' + ${org.logo}}"
+                             style="width:46px;height:46px;border-radius:10px;object-fit:cover"/>
+
+                        <div th:if="${org.logo == null}"
+                             style="width:46px;height:46px;border-radius:10px;
+                                    background:var(--primary);color:#fff;
+                                    display:flex;align-items:center;justify-content:center;
+                                    font-weight:700">
+                            <span th:text="${org.name.substring(0,1)}">O</span>
                         </div>
+
+                        <div style="flex:1">
+
+                            <div style="font-family:'DM Serif Display',serif;
+                                        font-size:1.05rem;color:var(--primary-dark)"
+                                 th:text="${org.name}">
+                            </div>
+
+                            <div style="font-size:.76rem;font-weight:700;color:var(--accent)"
+                                 th:text="${org.acronym}"
+                                 th:if="${org.acronym}">
+                            </div>
+
+                            <div style="font-size:.75rem;color:var(--text-muted)"
+                                 th:text="${org.type ?: 'General'}">
+                            </div>
+
+                        </div>
+
                         <span th:class="'badge badge-' + ${org.status.name().toLowerCase()}"
-                              th:text="${org.status}"></span>
+                              th:text="${org.status}">
+                        </span>
+
                     </div>
-                    <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:8px"
-                         th:text="${org.type ?: 'General'}"></div>
-                    <div style="font-size:.83rem;color:var(--text-sub);line-height:1.5;margin-bottom:14px;
-                                display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"
-                         th:text="${org.description ?: 'No description.'}"></div>
+
+                    <div style="font-size:.83rem;color:var(--text-sub);
+                                line-height:1.5;margin-bottom:14px;
+                                display:-webkit-box;-webkit-line-clamp:2;
+                                -webkit-box-orient:vertical;overflow:hidden"
+                         th:text="${org.description ?: 'No description.'}">
+                    </div>
+
                     <div style="display:flex;align-items:center;justify-content:space-between">
-                        <span style="font-size:.75rem;color:var(--text-muted)"
-                              th:text="${org.roles.size()} + ' officers'"></span>
-                        <a th:href="@{/organizations/{id}(id=${org.id})}" class="btn btn-primary btn-sm">Manage</a>
+
+                        <span style="font-size:.75rem;color:var(--text-muted)">
+                            Officers
+                        </span>
+
+                        <a th:href="@{/organizations/{id}(id=${org.id})}"
+                           class="btn btn-primary btn-sm">
+                            Manage
+                        </a>
+
                     </div>
+
                 </div>
             </div>
+
         </div>
 
+        <!-- EMPTY STATE -->
         <div class="card" th:if="${#lists.isEmpty(orgs)}">
-            <div class="card-body" style="text-align:center;padding:48px;color:var(--text-muted)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                     style="width:48px;height:48px;margin-bottom:14px;opacity:.3">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                </svg>
+            <div class="card-body"
+                 style="text-align:center;padding:50px;color:var(--text-muted)">
+
                 <p style="font-size:.9rem">No organizations yet.</p>
-                <a th:href="@{/organizations/new}" class="btn btn-primary" style="margin-top:14px">Create First Organization</a>
+
+                <a th:href="@{/organizations/new}"
+                   class="btn btn-primary"
+                   style="margin-top:14px">
+                    Create First Organization
+                </a>
+
             </div>
         </div>
 
     </div>
 </div>
+
 </body>
 </html>
