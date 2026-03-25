@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Admin Accounts')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('admins')}"></div>
+
+<div class="main">
+    <div class="topbar">
+        <span class="topbar-title">Admin Accounts</span>
+    </div>
+    <div class="page-content">
+
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Admin Accounts</h1>
+                <p>Manage administrator access for different university offices.</p>
+            </div>
+            <a th:href="@{/admins/new}" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Admin
+            </a>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}"   class="alert alert-danger"  th:text="${error}"></div>
+
+        <!-- Role legend -->
+        <div class="card" style="margin-bottom:20px">
+            <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <span style="font-size:.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-right:6px">Roles:</span>
+                <span class="badge badge-super">SUPER_ADMIN — Full access</span>
+                <span class="badge badge-osa">OSA — Office of Student Affairs</span>
+                <span class="badge badge-adaa">ADAA — Academic Affairs</span>
+                <span class="badge badge-adaf">ADAF — Admin &amp; Financial Affairs</span>
+                <span class="badge badge-do">DO — Department Officer</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Admin</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Office</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="a : ${admins}">
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:34px;height:34px;border-radius:50%;background:var(--primary);
+                                            color:#fff;display:flex;align-items:center;justify-content:center;
+                                            font-weight:800;font-size:.85rem;flex-shrink:0"
+                                     th:text="${a.fullName?.substring(0,1)}">A</div>
+                                <div>
+                                    <div style="font-weight:600" th:text="${a.fullName}"></div>
+                                    <div style="font-size:.74rem;color:var(--text-muted)" th:text="${a.email}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-family:monospace;font-size:.84rem;color:var(--text-sub)"
+                            th:text="${a.email}"></td>
+                        <td>
+                            <span th:class="'badge badge-' + ${a.role.name().toLowerCase().replace('_','-')}"
+                                  th:text="${a.role}"></span>
+                        </td>
+                        <td style="font-size:.84rem;color:var(--text-sub)" th:text="${a.office ?: '—'}"></td>
+                        <td>
+                            <span th:class="'badge badge-' + ${a.status.name().toLowerCase()}"
+                                  th:text="${a.status}"></span>
+                        </td>
+                        <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap"
+                            th:text="${a.lastLogin != null ? #temporals.format(a.lastLogin,'MMM dd HH:mm') : 'Never'}"></td>
+                        <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap"
+                            th:text="${a.createdAt != null ? #temporals.format(a.createdAt,'MMM dd, yyyy') : '—'}"></td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a th:href="@{/admins/{id}/edit(id=${a.id})}"
+                                   class="btn btn-outline btn-sm">Edit</a>
+                                <form th:action="@{/admins/{id}/toggle-status(id=${a.id})}"
+                                      method="post" style="margin:0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-sm"
+                                            th:classappend="${a.status.name()=='ACTIVE'} ? 'btn-danger' : 'btn-success'"
+                                            th:text="${a.status.name()=='ACTIVE'} ? 'Disable' : 'Enable'"
+                                            onclick="return confirm('Toggle this admin status?')">Toggle</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(admins)}">
+                        <td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No admin accounts found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

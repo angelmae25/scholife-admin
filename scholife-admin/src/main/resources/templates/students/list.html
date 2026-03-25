@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Students')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('students')}"></div>
+
+<div class="main">
+    <div class="topbar">
+        <span class="topbar-title">Students</span>
+    </div>
+    <div class="page-content">
+
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Student Registry</h1>
+                <p>All students registered on the Scholife mobile app.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <!-- Search + filter toolbar -->
+                <form method="get" th:action="@{/students}" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:100%">
+                    <div class="search-bar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" name="q" th:value="${q}" placeholder="Search by name or student ID…"/>
+                    </div>
+                    <select name="status" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Status</option>
+                        <option value="ACTIVE"   th:selected="${statusFilter=='ACTIVE'}">Active</option>
+                        <option value="PENDING"  th:selected="${statusFilter=='PENDING'}">Pending</option>
+                        <option value="INACTIVE" th:selected="${statusFilter=='INACTIVE'}">Inactive</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                    <a th:href="@{/students}" class="btn btn-outline btn-sm" th:if="${q != null or statusFilter != null}">Clear</a>
+                    <span style="margin-left:auto;font-size:.8rem;color:var(--text-muted)"
+                          th:text="${students.size()} + ' result(s)'"></span>
+                </form>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Student ID</th>
+                        <th>Course / Year</th>
+                        <th>Points</th>
+                        <th>Status</th>
+                        <th>Registered</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${students}">
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;
+                                            display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0"
+                                     th:text="${s.firstName?.substring(0,1)}">A</div>
+                                <div>
+                                    <div style="font-weight:600" th:text="${s.fullName}"></div>
+                                    <div style="font-size:.74rem;color:var(--text-muted)" th:text="${s.email}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-family:monospace;font-size:.84rem" th:text="${s.studentId}"></td>
+                        <td>
+                            <div style="font-size:.84rem" th:text="${s.course}"></div>
+                            <div style="font-size:.74rem;color:var(--text-muted)" th:text="${s.yearLevel}"></div>
+                        </td>
+                        <td style="font-weight:700;color:var(--accent)" th:text="${s.points}"></td>
+                        <td>
+                            <span th:class="'badge badge-' + ${s.status.name().toLowerCase()}"
+                                  th:text="${s.status}"></span>
+                        </td>
+                        <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap"
+                            th:text="${s.createdAt != null ? #temporals.format(s.createdAt,'MMM dd, yyyy') : '—'}"></td>
+                        <td>
+                            <a th:href="@{/students/{id}(id=${s.id})}" class="btn btn-outline btn-sm">View</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(students)}">
+                        <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No students found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

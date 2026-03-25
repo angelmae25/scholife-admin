@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Activity Logs')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar('logs')}"></div>
+<div class="main">
+    <div class="topbar"><span class="topbar-title">Activity Logs</span></div>
+    <div class="page-content">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Activity Logs</h1>
+                <p>Full audit trail of all admin actions on the Scholife platform.</p>
+            </div>
+        </div>
+        <div class="card" style="margin-bottom:18px">
+            <div class="card-body" style="padding:14px 20px">
+                <form method="get" th:action="@{/logs}"
+                      style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <div class="search-bar" style="max-width:300px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" name="q" th:value="${q}" placeholder="Search event or entity…"/>
+                    </div>
+                    <select name="adminId" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Admins</option>
+                        <option th:each="a : ${admins}"
+                                th:value="${a.id}"
+                                th:text="${a.fullName} + ' (' + ${a.role} + ')'"
+                                th:selected="${adminId != null and adminId == a.id}"></option>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                    <a th:href="@{/logs}" class="btn btn-outline btn-sm"
+                       th:if="${q != null or adminId != null}">Clear</a>
+                    <span style="margin-left:auto;font-size:.8rem;color:var(--text-muted)"
+                          th:text="${logs.totalElements} + ' total log(s)'"></span>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Category</th>
+                        <th>Admin</th>
+                        <th>Event</th>
+                        <th>Entity</th>
+                        <th>Status</th>
+                        <th>IP</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${logs.content}">
+                        <td style="color:var(--text-muted);font-size:.78rem" th:text="${log.id}"></td>
+                        <td>
+                            <span class="action-badge"
+                                  th:text="${log.category}"></span>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;font-size:.84rem"
+                                 th:text="${log.admin?.fullName ?: '—'}"></div>
+                            <div style="font-size:.72rem;color:var(--text-muted)"
+                                 th:text="${log.admin?.role ?: ''}"></div>
+                        </td>
+                        <td style="font-size:.83rem;color:var(--text-sub);max-width:260px"
+                            th:text="${log.event}"></td>
+                        <td style="font-size:.78rem;font-family:monospace;color:var(--primary)"
+                            th:text="${log.entity ?: '—'}"></td>
+                        <td>
+                            <span th:class="${log.status?.name() == 'SUCCESS'} ? 'badge badge-active' :
+                                            (${log.status?.name() == 'FAILED'} ? 'badge badge-inactive' : 'badge badge-pending')"
+                                  th:text="${log.status}"></span>
+                        </td>
+                        <td style="font-size:.76rem;color:var(--text-muted);font-family:monospace"
+                            th:text="${log.ipAddress ?: '—'}"></td>
+                        <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap"
+                            th:text="${#temporals.format(log.createdAt,'MMM dd, yyyy HH:mm')}"></td>
+                    </tr>
+                    <tr th:if="${logs.content.isEmpty()}">
+                        <td colspan="8" style="text-align:center;padding:36px;color:var(--text-muted)">No logs found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-body" style="padding:16px 22px" th:if="${logs.totalPages > 1}">
+                <div class="pagination">
+                    <a class="page-link" th:classappend="${logs.first} ? 'disabled'"
+                       th:href="@{/logs(page=${logs.number-1},size=${logs.size},q=${q},adminId=${adminId})}">← Prev</a>
+                    <th:block th:each="i : ${#numbers.sequence(0, logs.totalPages-1)}"
+                              th:if="${i >= logs.number-2 and i <= logs.number+2}">
+                        <a class="page-link" th:classappend="${i==logs.number} ? 'active'"
+                           th:href="@{/logs(page=${i},size=${logs.size},q=${q},adminId=${adminId})}"
+                           th:text="${i+1}">1</a>
+                    </th:block>
+                    <a class="page-link" th:classappend="${logs.last} ? 'disabled'"
+                       th:href="@{/logs(page=${logs.number+1},size=${logs.size},q=${q},adminId=${adminId})}">Next →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

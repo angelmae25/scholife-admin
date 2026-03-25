@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Setup — Scholife Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+    <style>
+        :root{--primary:#8B1A1A;--primary-dark:#6B0F0F;--accent:#E8A000;--bg:#F7F3F0;--border:#EDD5D5;--text:#1A0A0A;--text-sub:#6B4040;}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+        .wrap{width:100%;max-width:480px;padding:16px;}
+        .brand{font-family:'DM Serif Display',serif;font-size:2.4rem;color:var(--primary-dark);text-align:center;margin-bottom:8px;}
+        .brand span{color:var(--accent);}
+        .subtitle{text-align:center;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:28px;}
+        .card{background:#fff;border-radius:18px;padding:36px;border:1px solid var(--border);box-shadow:0 8px 40px rgba(139,26,26,.12);}
+        .card h2{font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--primary-dark);margin-bottom:6px;}
+        .card p{font-size:.82rem;color:var(--text-sub);margin-bottom:24px;line-height:1.5;}
+        .form-group{margin-bottom:14px;}
+        .form-label{display:block;font-size:.73rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+        .form-control{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .18s;}
+        .form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(139,26,26,.08);}
+        .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+        .btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:6px;box-shadow:0 3px 12px rgba(139,26,26,.28);}
+        .btn:hover{background:var(--primary-dark);}
+        .info{background:rgba(232,160,0,.09);border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;font-size:.82rem;color:#7A5800;margin-bottom:20px;}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="brand">Scho<span>O</span>life</div>
+    <div class="subtitle">First-Time Setup</div>
+    <div class="card">
+        <h2>Create Super Admin Account</h2>
+        <p>This is a one-time setup. This account will have full access to all features.</p>
+        <div class="info">⚡ Only accessible when no admin accounts exist yet.</div>
+        <form method="post" th:action="@{/setup}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="firstName" class="form-control" placeholder="e.g. Juan" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="lastName" class="form-control" placeholder="e.g. dela Cruz" required/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email (used to log in)</label>
+                <input type="email" name="email" class="form-control" placeholder="superadmin@scholife.edu" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="rawPassword" class="form-control" placeholder="Min. 8 characters" required/>
+            </div>
+            <button type="submit" class="btn">Create Super Admin</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Organization Detail')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('organizations')}"></div>
+
+<!-- Appoint Officer Modal -->
+<div class="modal-overlay" id="appointModal">
+    <div class="modal-box">
+        <div class="modal-title">Appoint Officer</div>
+        <form th:action="@{/organizations/{id}/appoint(id=${org.id})}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="form-group">
+                <label class="form-label">Officer Role *</label>
+                <select name="roleId" class="form-control" id="modalRole" required>
+                    <option value="">Select role…</option>
+                    <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.roleName}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Student *</label>
+                <select name="studentId" class="form-control" required>
+                    <option value="">Select active student…</option>
+                    <option th:each="s : ${students}"
+                            th:value="${s.id}"
+                            th:text="${s.fullName} + ' (' + ${s.studentId} + ')'"></option>
+                </select>
+            </div>
+            <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:14px">
+                ⚠️ If this role is already filled, the previous officer will be replaced.
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Appoint Officer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <span class="topbar-title" th:text="${org.name}">Organization</span>
+        <a th:href="@{/organizations}" class="btn btn-outline btn-sm">← All Organizations</a>
+    </div>
+    <div class="page-content">
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}"   class="alert alert-danger"  th:text="${error}"></div>
+
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1 th:text="${org.name}">Org Name</h1>
+                <p>
+                    <span th:if="${org.acronym}" th:text="${org.acronym} + ' · '"></span>
+                    <span th:text="${org.type ?: 'General'}"></span>
+                    &nbsp;·&nbsp;
+                    <span th:class="'badge badge-' + ${org.status.name().toLowerCase()}"
+                          th:text="${org.status}"></span>
+                </p>
+            </div>
+            <div style="display:flex;gap:10px">
+                <a th:href="@{/organizations/{id}/edit(id=${org.id})}" class="btn btn-outline">Edit</a>
+                <form th:action="@{/organizations/{id}/toggle-status(id=${org.id})}" method="post" style="margin:0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn"
+                            th:classappend="${org.status.name()=='ACTIVE'} ? 'btn-danger' : 'btn-success'"
+                            th:text="${org.status.name()=='ACTIVE'} ? 'Deactivate' : 'Activate'"
+                            onclick="return confirm('Toggle this organization status?')">Toggle</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info row -->
+        <div class="card" style="margin-bottom:20px">
+            <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+                <div>
+                    <div class="form-label">Adviser</div>
+                    <div th:text="${org.adviser ?: '—'}"></div>
+                </div>
+                <div>
+                    <div class="form-label">Year Founded</div>
+                    <div th:text="${org.yearFounded ?: '—'}"></div>
+                </div>
+                <div>
+                    <div class="form-label">Description</div>
+                    <div style="font-size:.84rem;color:var(--text-sub)" th:text="${org.description ?: '—'}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Officers -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Officer Appointments</span>
+                <button class="btn btn-primary btn-sm" onclick="openModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Appoint Officer
+                </button>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(assignments)}"
+                     style="color:var(--text-muted);font-size:.875rem;padding:8px 0">
+                    No officers appointed yet. Click "Appoint Officer" to assign roles.
+                </div>
+                <div class="roles-grid" th:if="${!#lists.isEmpty(assignments)}">
+                    <div class="role-card" th:each="a : ${assignments}">
+                        <div style="flex:1;min-width:0">
+                            <span class="role-badge" th:text="${a.role.roleName}"></span>
+                            <div class="role-name" style="margin-top:7px" th:text="${a.student.fullName}"></div>
+                            <div class="role-student" th:text="${a.student.studentId}"></div>
+                            <div class="role-student" th:text="${a.student.course}"></div>
+                        </div>
+                        <form th:action="@{/organizations/assignments/{aid}/remove(aid=${a.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="orgId" th:value="${org.id}"/>
+                            <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                                    onclick="return confirm('Remove this officer?')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                     style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary table -->
+        <div class="card" style="margin-top:20px" th:if="${!#lists.isEmpty(assignments)}">
+            <div class="card-header">
+                <span class="card-title">Officers Summary</span>
+                <span style="font-size:.8rem;color:var(--text-muted)"
+                      th:text="${assignments.size()} + ' appointed'"></span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Officer</th>
+                        <th>Role</th>
+                        <th>Student ID</th>
+                        <th>Course</th>
+                        <th>Appointed</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="a : ${assignments}">
+                        <td>
+                            <div style="display:flex;align-items:center;gap:9px">
+                                <div style="width:32px;height:32px;border-radius:50%;background:var(--primary);
+                                            color:#fff;display:flex;align-items:center;justify-content:center;
+                                            font-weight:800;font-size:.8rem;flex-shrink:0"
+                                     th:text="${a.student.firstName?.substring(0,1)}">A</div>
+                                <span style="font-weight:600" th:text="${a.student.fullName}"></span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-org" th:text="${a.role.roleName}"></span></td>
+                        <td style="font-family:monospace;font-size:.84rem" th:text="${a.student.studentId}"></td>
+                        <td style="font-size:.84rem;color:var(--text-sub)" th:text="${a.student.course}"></td>
+                        <td style="font-size:.78rem;color:var(--text-muted)"
+                            th:text="${a.createdAt != null ? #temporals.format(a.createdAt,'MMM dd, yyyy') : '—'}"></td>
+                        <td>
+                            <a th:href="@{/students/{id}(id=${a.student.id})}"
+                               class="btn btn-outline btn-sm">Profile</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal()  { document.getElementById('appointModal').classList.add('open'); }
+function closeModal() { document.getElementById('appointModal').classList.remove('open'); }
+document.getElementById('appointModal').addEventListener('click', function(e){
+    if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
