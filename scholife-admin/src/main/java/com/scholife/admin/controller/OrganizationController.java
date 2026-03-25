@@ -66,7 +66,6 @@ public class OrganizationController {
                 }
 
                 String fileName = System.currentTimeMillis() + "_" + logoFile.getOriginalFilename();
-
                 Path filePath = uploadPath.resolve(fileName);
 
                 Files.copy(logoFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -95,10 +94,8 @@ public class OrganizationController {
             );
         }
 
-        // SUCCESS MESSAGE
         ra.addFlashAttribute("success", "Organization created successfully.");
 
-        // REDIRECT BACK TO ORGANIZATIONS PAGE
         return "redirect:/organizations";
     }
 
@@ -126,5 +123,38 @@ public class OrganizationController {
         model.addAttribute("currentAdmin", currentAdmin.get());
 
         return "organizations/detail";
+    }
+
+    // =========================
+    // APPOINT OFFICER (Modal)
+    // =========================
+    @PostMapping("/{id}/appoint")
+    public String appoint(@PathVariable Long id,
+                          @RequestParam Long studentId,
+                          @RequestParam Long roleId,
+                          RedirectAttributes ra) {
+
+        AdminUser admin = currentAdmin.get();
+
+        orgService.appoint(id, studentId, roleId, admin);
+
+        ra.addFlashAttribute("success", "Officer appointed successfully.");
+
+        return "redirect:/organizations/" + id;
+    }
+
+    // =========================
+    // REMOVE OFFICER
+    // =========================
+    @PostMapping("/assignments/{aid}/remove")
+    public String removeAssignment(@PathVariable Long aid,
+                                   @RequestParam Long orgId,
+                                   RedirectAttributes ra) {
+
+        orgService.removeAssignment(aid);
+
+        ra.addFlashAttribute("success", "Officer removed.");
+
+        return "redirect:/organizations/" + orgId;
     }
 }
