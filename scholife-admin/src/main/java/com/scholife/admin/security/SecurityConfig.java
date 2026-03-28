@@ -36,16 +36,16 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         return email -> {
             AdminUser admin = adminRepo.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Admin not found: " + email));
+                    .orElseThrow(() -> new UsernameNotFoundException("Admin not found: " + email));
             if (admin.getStatus() == AdminUser.AdminStatus.INACTIVE)
                 throw new UsernameNotFoundException("Account deactivated.");
             admin.setLastLogin(LocalDateTime.now());
             adminRepo.save(admin);
             return User.builder()
-                .username(admin.getEmail())
-                .password(admin.getPassword())
-                .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + admin.getRole().name())))
-                .build();
+                    .username(admin.getEmail())
+                    .password(admin.getPassword())
+                    .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + admin.getRole().name())))
+                    .build();
         };
     }
 
@@ -65,29 +65,50 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authenticationProvider(authProvider())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                .requestMatchers("/login", "/setup").permitAll()
-                .requestMatchers("/admins/**").hasRole("SUPER_ADMIN")
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error=true")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            );
+                .authenticationProvider(authProvider())
+                .authorizeHttpRequests(auth -> auth
+                        // ── Static assets ────────────────────────────────────────────
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+
+                        // ── Auth pages ───────────────────────────────────────────────
+                        .requestMatchers("/login", "/setup").permitAll()
+
+                        // ── Flutter mobile API — open to the local network ───────────
+                        // FIX: This was missing. Without it, every Flutter call to
+                        // /api/org-post/** gets a 302 redirect to /login instead of
+                        // the actual data. Flutter doesn't follow session-based
+                        // redirects — it just gets a 302 response and crashes.
+                        .requestMatchers("/api/org-post/**").permitAll()
+
+                        // ── Admin-only pages ─────────────────────────────────────────
+                        .requestMatchers("/admins/**").hasRole("SUPER_ADMIN")
+
+                        // ── Everything else requires an admin session ────────────────
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .failureUrl("/login?error=true")
+                        .usernameParameter("email")
+                        .passwordParameter("password")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                // ── Disable CSRF for the Flutter REST API ────────────────────────
+                // CSRF protection is form-based and doesn't apply to mobile REST
+                // clients. Without this, POST from Flutter would also get a 403.
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                );
+
         return http.build();
     }
 }
