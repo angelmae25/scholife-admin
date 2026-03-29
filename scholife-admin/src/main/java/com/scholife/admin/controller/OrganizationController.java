@@ -131,15 +131,19 @@ public class OrganizationController {
     @PostMapping("/{id}/appoint")
     public String appoint(@PathVariable Long id,
                           @RequestParam Long studentId,
-                          @RequestParam Long roleId,
+                          @RequestParam(required = false) Long roleId,
+                          @RequestParam(required = false) String customRoleName,
                           RedirectAttributes ra) {
 
-        AdminUser admin = currentAdmin.get();
-
-        orgService.appoint(id, studentId, roleId, admin);
+        // If admin typed a custom role name, create/find that role by name
+        if (roleId == null || (customRoleName != null && !customRoleName.isBlank())) {
+            orgService.assignRole(id, studentId, customRoleName.trim());
+        } else {
+            AdminUser admin = currentAdmin.get();
+            orgService.appoint(id, studentId, roleId, admin);
+        }
 
         ra.addFlashAttribute("success", "Officer appointed successfully.");
-
         return "redirect:/organizations/" + id;
     }
 
